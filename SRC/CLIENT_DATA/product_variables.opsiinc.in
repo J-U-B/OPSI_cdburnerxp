@@ -1,0 +1,222 @@
+;=====================================================================
+; product specific variables CDBurnerXP
+;
+; J. Boettge <boettge@mpi-halle.mpg.de>  2019-03-08 16:43:28 +0100
+;=====================================================================
+
+include_insert "%ScriptPath%\variables.opsiinc"
+
+Set $MAP$ 				= getProductMap
+Set $FullProductId$   	= getValue("id", $MAP$)
+Set $ProductName$     	= getValue("name", $MAP$)
+Set $Version$         	= getValue("ProductVersion", $MAP$)
+Set $SystemType$      	= GetSystemType
+Set $NTVersion$   		= GetMsVersionInfo
+
+;-----------------------------------------------------------
+;*** basic requirements
+;-----------------------------------------------------------
+requiredWinstVersion >= "4.11.6"
+
+if CompareDotSeparatedNumbers($NTVersion$, "<", "6.1")
+	LogError "OS is not Windows 7 or above"
+	isFatalError
+endif
+
+if not ($SystemType$ = "64 Bit System")
+	; LogError "OS is not a 64 Bit System"
+	; isFatalError
+
+	LogWarning "OS is not a 64 Bit System; 32 Bit is not explicitly supported"
+endif
+
+;-----------------------------------------------------------
+;*** get LogLevel from property
+Set $LogLevelDefault$ = GetProductProperty("log_level","default")
+;-----------------------------------------------------------
+;*** detect testing package:
+if (strPos($FullProductId$, "0_") = "0") and (strPos($FullProductId$, "test_") = "0")
+	; not a testing package
+	set $ProductId$  	= $FullProductId$ 
+	set $Testing$ 		= "false"
+	if ($LogLevelDefault$ = "default")
+		set $LogLevelDefault$  	= "{{DEFAULT_RELEASE_LOGLEVEL}}"
+	endif
+else
+	; this is a testing package
+	comment "Prefix for testing package detected"
+	set $ProductId$  		= strPart($FullProductId$, calculate(strPos($FullProductId$,"_") + "+1"), strLength($FullProductId$))
+	set $Testing$ 		= "true"
+	if ($LogLevelDefault$ = "default")
+		set $LogLevelDefault$  	= "{{DEFAULT_TESTING_LOGLEVEL}}"
+	endif
+endif
+setlogLevel = $LogLevelDefault$
+
+;-----------------------------------------------------------
+;*** detect O4I/DFN package:
+;-----------------------------------------------------------
+if (strPos($FullProductId$, "o4i_") = "0") AND (strPos($FullProductId$, "dfn_") = "0")
+	set $isO4I$ = "false"
+	set $StrippedProductId$ = $ProductId$
+else
+	set $isO4I$ = "true"
+	set $StrippedProductId$ = strPart($ProductId$,"5",strLength($ProductId$))
+endif
+
+;-----------------------------------------------------------
+;*** Images
+;-----------------------------------------------------------
+if ($isO4I$ = "true")
+	set $Img_Install$		= "%ScriptPath%\images\" + $StrippedProductId$ + "_install_o4i.png"
+else
+	set $Img_Install$		= "%ScriptPath%\images\" + $StrippedProductId$ + "_install.png"
+endif
+set $Img_Install_Custom$	= "%ScriptPath%\images\" + $StrippedProductId$ + "_install_custom.png"
+Set $Img_Uninstall$			= "%ScriptPath%\images\" + $StrippedProductId$ + "_uninstall.png"
+Set $Img_Uninstall_Custom$	= "%ScriptPath%\images\" + $StrippedProductId$ + "_uninstall_custom.png"
+Set $Img_Prepare$			= "%ScriptPath%\images\" + $StrippedProductId$ + "_prepare.png"
+Set $Img_Plugins$			= "%ScriptPath%\images\" + $StrippedProductId$ + "_plugins.png"
+Set $Img_Update$			= "%ScriptPath%\images\" + $StrippedProductId$ + "_update.png"
+
+comment "preparing..."
+ShowBitmap $Img_Prepare$ $ProductName$
+
+;-----------------------------------------------------------
+;*** software architecture; valid values: "32 bit", "64 bit", "sysnative"
+;-----------------------------------------------------------
+; make the systemtype shorter:
+if ($SystemType$ = "64 Bit System")
+	set $SystemType$ ="x64"
+else
+	set $SystemType$ ="x32"
+endif
+
+Set $sw_arch$ = GetProductProperty("install_architecture","sysnative")
+Set $sw_arch$ = takeString(0, splitString($sw_arch$, " "))
+; Set $sw_arch$		  = "32"
+
+if ( $sw_arch$ = "sysnative" )
+	if ($SystemType$ = "x64")
+		Set $sw_arch$ = "64"
+	else
+		Set $sw_arch$ = "32"
+	endif
+endif
+
+if ($sw_arch$ = "64")
+	; 64 bit software
+	set $InstallBase$ = "%ProgramFiles64Dir%"
+else
+	; 32 bit software
+	set $InstallBase$ = EnvVar("ProgramFiles(x86)")
+endif
+
+if ($SystemType$="x86 System") and ($sw_arch$="64")
+	LogError "Cannot install 64 bit version of " + $ProductName$ + " on a 32 bit operating system!"
+	isFatalError
+endif
+
+;-----------------------------------------------------------
+;*** property: language - "de_DE, "en_US"
+; application language defined via environment variable LANG
+;-----------------------------------------------------------
+; ...not yet implemented
+; Set $sw_lang$ 				= GetProductProperty("default_language","en_US")
+
+;-----------------------------------------------------------
+;*** property: create desktop/startmenu/quickstart link?
+;-----------------------------------------------------------
+Set $pr_DesktopLink$ 		= GetProductProperty("link_desktop","False")
+
+;-----------------------------------------------------------
+;*** properties: post install/uninstall
+;-----------------------------------------------------------
+set $CustomPostInstall$ 	= getProductProperty("custom_post_install","none")
+set $CustomPostUninstall$ 	= getProductProperty("custom_post_uninstall","none")
+
+;-----------------------------------------------------------
+;*** select PSDETAIL:
+set $PSDETAIL$ 			= "%ScriptPath%\bin\psdetail.exe"
+if (CompareDotSeparatedNumbers($NTVersion$, ">=", "10.0"))
+	set $PSDETAIL$ 			= "%ScriptPath%\bin\psdetail4.exe"
+endif
+set $PSDETAIL_mod$			= ""
+
+;*** 7zip
+set $SEVENZIP$				= "%ScriptPath%\bin\7za.exe"
+
+;-----------------------------------------------------------
+;*** misc settings
+;-----------------------------------------------------------
+setlogLevel 				= $LogLvl$
+set $Kill_Running$ 			= GetProductProperty("kill_running", "False")
+
+Set $RegPathUninstall64$ 	= "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall"
+Set $RegPathUninstall32$ 	= "HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall"
+
+;-----------------------------------------------------------
+;*** specific settings
+;-----------------------------------------------------------
+Set $InstallerType$   	= "{{O_USE_INSTALLER}}"
+include_append "%ScriptPath%\exitcode_inno.opsiinc"
+include_append "%ScriptPath%\exitcode_msi.opsiinc"
+;include_append "%ScriptPath%\exitcode_nsis.opsiinc"
+
+; packages (for example):
+; 		cdburnerxp-4.5.8.7041-x64.msi
+; 		cdburnerxp-4.5.8.7041-x32.msi
+; 		cdburnerxp-4.5.8.7041-x64_minimal.exe
+; 		cdburnerxp-4.5.8.7041-x32_minimal.exe
+
+;Set $InstallDir$      	= $InstallBase$ + "\" + stringReplace($ProductName$," ", "") + "\"
+;Set $InstallDir$      	= $InstallBase$ + "\" + $ProductName$ + "\"
+Set $InstallDir$      	= $InstallBase$ + "\" + $StrippedProductId$ + "\"
+
+Set $MinimumSpace$    	= "50 MB"
+;Set $CheckBin$       	= $StrippedProductId$ + ".exe"
+Set $CheckBin$       	= "cdbxpp.exe"
+
+Set $LogDir$			= "%SystemDrive%\tmp"
+Set $Inst_Log$			= $LogDir$ + "\"+$ProductId$+"_install.log"
+Set $Uninst_Log$		= $LogDir$ + "\"+$ProductId$+"_uninstall.log"
+
+Set $SearchPattern$ 	= $ProductName$
+Set $Uninst_ID_std$	   	= $ProductName$
+Set $Uninst_Prg$       	= "unins000.exe"
+Set $Uninstaller$	   	= $InstallDir$ + $Uninst_Prg$
+; ...oder UninstallString aus Registry
+
+Switch $InstallerType$
+Case "INNO"
+	;============= INNO =============
+	Set $Installer$			= "%ScriptPath%\files\" + $StrippedProductId$ + "-{{O_SOFTWARE_VER}}-x" + $sw_arch$ + "_minimal.exe"
+	Set $INNO_Setup_Inf$	= "%ScriptPath%\files\setup_cdburnerxp.inf"
+	
+	Set $INNO_Inst_Opts$    = '/SP- /SILENT /NOCANCEL /NORESTART /CLOSEAPPLICATIONS /SUPPRESSMSGBOXES /LANG=english /DIR="' + $InstallDir$ +'" /GROUP="' + $ProductName$ +'" /LOADINF="+ $INNO_Setup_Inf$ +" /LOG="'+ $Inst_Log$ +'"'
+	Set $INNO_Uninst_Opts$  = '/SILENT /NORESTART /LOG="'+ $Uninst_Log$ +'"'
+EndCase	
+Case "MSI"
+	;============= MSI ==============
+	Set $Installer$			= "%ScriptPath%\files\" + $StrippedProductId$ + "-{{O_SOFTWARE_VER}}-x" + $sw_arch$ + ".msi"
+	
+	Set $MSI_Inst_Opts$ 	= '/qb-! /norestart /l+* "' + $Inst_Log$ +'" INSTALLDIR="' + $InstallDir$ + '" REBOOT=ReallySuppress ALLUSERS=1'
+	Set $MSI_Uninst_Opts$  	= '/qb-! /norestart /l+* "' + $Uninst_Log$ + '" REBOOT=ReallySuppress'
+	Set $MSI_Inst_Cmd$		= 'msiexec /i "' + $Installer$ +'" ' + $Inst_Opts$
+	Set $MSI_Uninst_Cmd$ 	= "msiexec /x $ProductKey$ " + $Uninst_Opts$
+EndCase
+Case "NSIS"
+	;=== NSIS === (not used here)
+	;Set $NSIS_Inst_Opts$  	= "/S  /D=" + $InstallDir$
+	;Set $NSIS_Uninst_Opts$	= "/S"
+	isFatalError "FATAL ERROR: Unsupported installer type [" + $InstallerType$ + "]"
+EndCase
+DefaultCase
+	isFatalError "FATAL ERROR: Unknown installer type [" + $InstallerType$ + "]"
+EndCase
+EndSwitch
+	
+if not (FileExists($Installer$))
+	LogError "FATAL ERROR: Installer not found [" + $Installer$ + "]"
+	isFatalError
+endif

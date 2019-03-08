@@ -1,0 +1,185 @@
+#!/bin/bash
+#=======================================================================
+# Download files from vendor
+# Product: CDBurnerXP
+#
+# Version 1.4
+# Jens Boettge <boettge@mpi-halle.mpg.de>  2019-03-08 14:31:41 +0100
+#=======================================================================
+# link examples:
+#	INNO: (O_DL_EXE_64BIT und O_DL_EXE_32BIT)
+#		https://download.cdburnerxp.se/minimal/7bcc284b82fb94738c6960218d45fcb2/5c82471a/cdbxp_setup_4.5.8.7041_x64_minimal.exe
+#		https://download.cdburnerxp.se/minimal/36741aa471bc963affb223e6e124d3bb/5c82471a/cdbxp_setup_4.5.8.7041_minimal.exe
+#
+#	MSI:
+#		https://download.cdburnerxp.se/msi/cdbxp_setup_x64_4.5.8.7041.msi
+#		https://download.cdburnerxp.se/msi/cdbxp_setup_4.5.8.7041.msi
+#
+#	ZIP (Portable):
+#		https://download.cdburnerxp.se/portable/CDBurnerXP-x64-4.5.8.7041.zip
+#		https://download.cdburnerxp.se/portable/CDBurnerXP-4.5.8.7041.zip
+#=======================================================================
+
+ERR=0
+THIS_DIR=$(dirname $(readlink -f $0))
+DOWNLOADER="curl"
+
+MD5EXE=$(which md5sum)
+if [ -z "$MD5EXE" ]; then echo "Error: md5sum not found"; exit 200 ; fi
+
+if [ "$DOWNLOADER" = "wget" ]; then
+	WGET=$(which wget)
+	if [ -z "$WGET" ];   then echo "Error: wget not found" ;  exit 201 ; fi
+	#options for wget:
+	DL_OPTS="--max-redirect=6 --no-cookies -nv "
+	DL_OUT="-O"
+fi
+
+if [ "$DOWNLOADER" = "curl" ]; then
+	CURL=$(which curl)
+	if [ -z "$CURL" ];   then echo "Error: curl not found" ;  exit 202 ; fi
+	#options for curl:
+	DL_OPTS="--silent --show-error -L "
+	DL_OUT="-o"
+fi
+
+if [ -f "${THIS_DIR}/Makefile" ] ; then
+	# Skript is running in the context of building OPSI package via make
+	MODE="make"	
+else
+	# Skript is running during installing package on depot
+	MODE="depot"
+fi
+
+PROD="{{O_SOFTWARE}}"
+VERSION={{O_SOFTWARE_VER}}
+# BUILD={{O_SOFTWARE_BUILD}}
+# [[ -n "$PRODUCT_VERSION" ]] && VERSION=${PRODUCT_VERSION}
+[[ -z "$VERSION" ]] && ERR=220
+[[ "$VERSION" =~ "O_SOFTWARE_VER" ]] && ERR=221
+if [ "$ERR" -gt 0 ]; then
+	echo "Error: cannot get software version"
+	exit $ERR
+fi
+#[[ -z "$BUILD" ]] && ERR=222
+#[[ "$BUILD" =~ "O_SOFTWARE_BUILD" ]] && ERR=223
+#if [ "$ERR" -gt 0 ]; then
+#	echo "Error: cannot get software build number"
+#	exit $ERR
+#fi
+
+if [ "{{O_USE_INSTALLER}}" = "MSI" ]; then
+	#========== MSI ===============
+	BASE="https://download.cdburnerxp.se/msi/cdbxp_setup_%%WARCH%%${VERSION}.msi"
+	PKG_FILE="${PROD}-${VERSION}-x%%ARCH%%.msi"
+elif [ "{{O_USE_INSTALLER}}" = "INNO" ]; then
+	#========== INNO ==============
+	declare -A URL=( ["32"]="{{O_DL_EXE_32BIT}}" ["64"]="{{O_DL_EXE_64BIT}}")
+	PKG_FILE="${PROD}-${VERSION}-x%%ARCH%%_minimal.exe"
+else
+	echo "Error: unsupported installer" ; 
+	exit 300
+fi
+
+# in postinst: DEST_DIR=DST="${CLIENT_DATA_DIR}/files"
+# in Makefile: DEST_DIR=./DOWNLOAD
+# ...otherwise use default:
+if [ -z "${DEST_DIR}" ]; then
+	[ -f "${THIS_DIR}/Makefile" ] && DEST_DIR="${THIS_DIR}/DOWNLOAD" || DEST_DIR="${THIS_DIR}/files"
+fi
+[ ! -d "${DEST_DIR}" ]  && mkdir ${DEST_DIR}
+# remove trailing "/" in path:
+DEST_DIR=${DEST_DIR%\/}
+
+MD5SUMS="${PROD}.md5sums"
+CNT=0
+FS_THRESHOLD=10000
+
+calc_md5()
+{
+	#calculate md5sums in "make" mode
+	[ -z "$1" ] && return
+	MD5EX=$(grep $1 ${DEST_DIR}/${MD5SUMS} 2>/dev/null)
+	if [ -z "$MD5EX" ]; then
+		# md5sum not yet calculated
+		echo -e "\tCalculating md5sum for $1"
+		(cd ${DEST_DIR} && md5sum $1 >> ${MD5SUMS})
+		[ $? -gt 0 ] && let "ERR+=1"
+	else
+		echo -e "\tmd5sum found for $1: [${MD5EX%% *}]"
+	fi
+}
+
+check_md5()
+{
+		#check md5sums in "depot" mode
+		if [ ! -f "${THIS_DIR}/$MD5SUMS" ]; then
+			echo "Error: $MD5SUMS not found!"
+			let "ERR+=100"
+		else
+			MD5LINES=$(wc -l ${THIS_DIR}/$MD5SUMS)
+			if [ "${MD5LINES%% *}" -ne "$CNT" ] ; then
+				echo "Error: number of given md5sums doesn't match file count."
+				let "ERR+=101"
+				return
+			else
+				echo "Checking md5sums for ${MD5LINES%% *} file(s)"
+			fi
+			(cd ${DEST_DIR} && md5sum -c ${THIS_DIR}/$MD5SUMS)
+			[ $? -gt 0 ] && let "ERR+=102"
+		fi
+}
+download()
+{       
+        DL_URL=$1
+        [ -n "$2" ] && PACKAGE=$2 || PACKAGE=`basename $DL_URL`
+        
+        let "CNT++"
+        echo -e "Retrieving [$PACKAGE]\n\tfrom: [${DL_URL}]";
+        if [ -f "${DEST_DIR}/${PACKAGE}" ]; then
+                echo -e "\tFile already exists"
+        else
+                eval ${DOWNLOADER} ${DL_OPTS} "${DL_URL}" ${DL_OUT} "${DEST_DIR}/${PACKAGE}"
+                if  [ ! -f "${DEST_DIR}/${PACKAGE}" ]; then
+                        let "ERR+=1"
+                else
+                        FILESIZE=$(stat -c%s "${DEST_DIR}/${PACKAGE}")
+                        if [ "${FS_THRESHOLD}" -gt "${FILESIZE}" ]; then
+                                echo -e "*E*  file has an unusual size; assuming error page"
+                                rm -f "${DEST_DIR}/${PACKAGE}"
+                                let "ERR+=1"
+                        else                    
+                                chmod g+r "${DEST_DIR}/${PACKAGE}"
+                        fi
+                fi
+        fi  
+        [ "$MODE" = "make" ] && calc_md5 ${PACKAGE}    
+}
+
+echo "=================================================================="
+echo "Downloading required files from vendor"
+echo "Detected version for this package: ${VERSION}"
+echo "Timestamp: $(date +'%Y-%m-%d %H:%M:%S')"
+echo "Targtet directory: ${DEST_DIR}"
+echo "=================================================================="
+
+CNT=0
+
+[ ${#URL[@]} -gt 0 ] && for AX in "${!URL[@]}"; do echo "$AX bit --> ${URL[$AX]}"; done
+
+for ARCH in "32" "64"; do
+		[ "${ARCH}" == "64" ] && WARCH="x64_" || WARCH=""
+		PACKAGE=${PKG_FILE//%%ARCH%%/$ARCH}
+        if [ ${#URL[@]} -gt 0 ]; then
+			PKG_URL="${URL[$ARCH]}"
+		else
+			PKG_URL="${BASE//%%ARCH%%/$ARCH}"
+			PKG_URL="${PKG_URL//%%WARCH%%/$WARCH}"
+        fi
+        download "${PKG_URL}"  "${PACKAGE}"
+done
+
+[ "$MODE" = "depot" ] && check_md5  
+# MD5SUMS="DOWNLOAD/${PROD}.md5sums" check_md5 
+
+exit $ERR

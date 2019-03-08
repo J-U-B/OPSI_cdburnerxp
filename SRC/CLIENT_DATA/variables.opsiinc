@@ -1,0 +1,100 @@
+;=====================================================================
+; variables.opsiinc CDBurnerXP
+;
+; This file contains all possible variables, excluding the opsi-system
+; variables, for the opsi-winst scripts in use.
+;
+; J. Boettge <boettge@mpi-halle.mpg.de>  2019-03-08 14:28:31 +0100
+;=====================================================================
+
+DefStringList $MAP$
+DefStringList $ResultList$
+DefStringList $TempList$
+
+DefVar $CheckBin$
+DefVar $currentLogLevel$
+DefVar $CustomPostInstall$
+DefVar $CustomPostUninstall$
+DefVar $DisplayName$
+DefVar $ErrorMsg$
+DefVar $ExitCode$
+DefVar $FullProductId$
+DefVar $Img_Install$
+DefVar $Img_Install_Custom$
+DefVar $Img_Uninstall$
+DefVar $Img_Uninstall_Custom$
+DefVar $Img_Prepare$
+DefVar $Img_Plugins$
+DefVar $Img_Update$	
+DefVar $InstallBase$
+DefVar $InstallDir$
+DefVar $Installer$
+DefVar $InstallerType$
+DefVar $Inst_Cmd$
+DefVar $Inst_Loc$
+DefVar $Inst_Log$
+DefVar $Inst_Opts$
+DefVar $Inst_Ver$
+DefVar $isINNO$
+; DefVar $isMSI$
+; DefVar $isNSIS$
+DefVar $isO4I$
+DefVar $LogDir$
+DefVar $LogLevelDefault$
+DefVar $MainBin$
+DefVar $MinimumSpace$
+DefVar $NTVersion$
+DefVar $ProductId$
+DefVar $ProductName$
+DefVar $RegInno$
+DefVar $RegKey$
+DefVar $RegKeyPath$
+DefVar $RegPathUninstall32$
+DefVar $RegPathUninstall64$
+DefVar $RegProductID$
+DefVar $RegSearchOpts$
+DefVar $SearchPattern$
+DefVar $SEVENZIP$
+DefVar $StrippedProductId$
+DefVar $sw_arch$
+DefVar $SystemType$
+DefVar $Testing$
+DefVar $TimeDiff$
+DefVar $Uninstaller$
+DefVar $UninstallString$
+DefVar $Uninst_Arch$
+DefVar $Uninst_ID$
+DefVar $Uninst_ID_std$
+DefVar $Uninst_Log$
+DefVar $Uninst_Opts$
+DefVar $Uninst_Prg$
+DefVar $Uninst_RegDir$
+DefVar $Version$
+
+DefVar $INNO_Setup_Inf$
+DefVar $INNO_Inst_Opts$
+DefVar $INNO_Uninst_Opts$
+DefVar $INNO_Inst_Cmd$
+DefVar $INNO_Uninst_Cmd$
+
+DefVar $MSI_Inst_Opts$
+DefVar $MSI_Uninst_Opts$
+DefVar $MSI_Inst_Cmd$
+DefVar $MSI_Uninst_Cmd$
+
+; DefVar $NSIS_Inst_Opts$
+; DefVar $NSIS_Uninst_Opts$
+; DefVar $NSIS_Inst_Cmd$
+; DefVar $NSIS_Uninst_Cmd$
+
+
+; Properties:
+DefVar $pr_DesktopLink$
+
+; Variables for checkinstance:
+DefVar $Proc_Cnt$
+DefVar $Proc_Killed$
+DefVar $PSDETAIL$
+DefVar $PSDETAIL_mod$
+DefVar $PSDETAIL_opr$
+DefVar $Kill_Running$

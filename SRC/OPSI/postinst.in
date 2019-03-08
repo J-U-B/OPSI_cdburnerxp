@@ -1,0 +1,125 @@
+#! /bin/bash
+#=====================================================================
+# postinst script for: (generic)
+# Version: 2.1
+#
+# This script executes after unpacking files from that archive and
+# registering the product at the depot.
+#
+# The following environment variables can be used to obtain information
+# about the current installation:
+#   PRODUCT_ID: id of the current product
+#   CLIENT_DATA_DIR: directory which contains the installed client data
+#=====================================================================
+# J. Boettge <boettge@mpi-halle.mpg.de>  2018-10-26 07:45:20 +0200
+#=====================================================================
+
+TS=$(date +"%s")
+LOGFILE={{O_INST_LOG}}
+
+exec >> $LOGFILE
+exec 2>&1
+chgrp opsiadmin $LOGFILE
+chmod g+rw $LOGFILE
+
+echo "==========================================================================="
+echo "${PRODUCT_ID} ({{ORGNAME}}) POSTINST LOG"
+echo "==========================================================================="
+date +'Start: %F  %H:%M:%S'
+
+SRC="${CLIENT_DATA_DIR}/../_SOURCE/${PRODUCT_ID##0_}"
+DST="${CLIENT_DATA_DIR}/files"
+# remove trailing "/" in path:
+DST=${DST%\/}
+TMP_DIR=${CLIENT_DATA_DIR}/../${PRODUCT_ID}.tmp
+ERR=0
+
+### check for testing and O4I package:
+P=${PRODUCT_ID}
+[ "${P}" = "${P##0_}" -a "${P}" = "${P##test_}" ] &&  IS_TESTING=false || IS_TESTING=true
+P=${P/#0_/}
+P=${P/#test_/}
+[ "${P}" = "${P##o4i_}" ] && IS_O4I=false || IS_O4I=true
+[ "${P}" = "${P##dfn_}" ] && IS_DFN=false || IS_DFN=true
+
+if [ $IS_O4I == true -o $IS_DFN == true ]; then
+	 echo "*** O4I package detected ***"
+	 [ ! -d "${DST}" -a ! -d $TMP_DIR/files ] && mkdir $DST
+else
+	### symlink files directory to ../_SOURCE/${PRODUCT_ID##0_}
+	### only for non-O4I packages:
+	if [ -h "${DST}" ]; then
+		echo "Symlink to [${DST}] already exists. - Replacing"
+		rm ${DST}
+	fi
+	
+	if [ ! -d "${SRC}" ]; then	
+		echo "Directory [${SRC}] does not exist. Try to create it."
+		mkdir -m 750 ${SRC} && chgrp pcpatch ${SRC}
+	fi
+
+	if [ -d "${DST}" ]; then
+		echo "Directory [${DST}] already exists!\nSkipping creation of symlink."
+	elif [ -f "${DST}" ]; then
+		echo "File [${DST}] already exists!\nSkipping creation of symlink."
+	else
+		ln -s ${SRC} ${DST}
+	fi
+fi
+
+
+### restore custom directories
+if [ -d $TMP_DIR ]; then
+	echo 'Restoring previous directories...'
+	TMP_DIR=`readlink -f $TMP_DIR`
+	for DIRNAME in custom files; do
+		echo "* [${DIRNAME}]"
+		if [ -d $TMP_DIR/${DIRNAME} ]; then
+			test -e $CLIENT_DATA_DIR/${DIRNAME} || mkdir $CLIENT_DATA_DIR/${DIRNAME}
+			echo -e "\tmoving $TMP_DIR/${DIRNAME} to $CLIENT_DATA_DIR/"
+			
+			IFS=$'\n'
+			PR=$TMP_DIR/${DIRNAME}
+			for D in `find ${PR} -xtype d`; do 
+				if [ -n "${D##${PR}}" -a ! -d "$CLIENT_DATA_DIR/${DIRNAME}/${D##${PR}}" ]; then
+					TGT=$CLIENT_DATA_DIR/${DIRNAME}/${D##${PR}}
+					echo -e "\t* mdir [${D##${PR}}] --> [${TGT}]"
+					mkdir -p "${TGT}"
+				fi
+			done &&\
+			for F in `find ${PR} -xtype f`; do
+				if [ -n "$F" -a ! -e "$CLIENT_DATA_DIR/${DIRNAME}/${F##${PR}/}" ]; then
+					echo -e "\t* fmov [${F##${PR}/}]"
+					mv "${F}" "$CLIENT_DATA_DIR/${DIRNAME}/${F##${PR}/}"
+				fi
+			done &&\
+			rm -rf $TMP_DIR/${DIRNAME} || exit 1
+			## rsync -av --remove-source-files $TMP_DIR/${DIRNAME}/. $CLIENT_DATA_DIR/${DIRNAME}/ && \
+			## rm -rf $TMP_DIR/${DIRNAME} || exit 1
+		else
+			echo -e "\tdoes not exist here"
+		fi
+	done
+fi
+echo "Removing temporary files..."
+rm -rf $TMP_DIR
+
+
+{{^ifdef_allinc}}
+{{#ifdef_auto_download}}
+### product downloader
+if [[ -f "${CLIENT_DATA_DIR}/product_downloader.sh" ]]; then
+	echo -e "\nCalling product downloader"
+	DEST_DIR=${DST} ${CLIENT_DATA_DIR}/product_downloader.sh
+	ERR=$?
+else
+	echo -e "\nProduct downloader not found!"
+	ERR=2
+fi
+{{/ifdef_auto_download}}
+{{/ifdef_allinc}}
+
+date +'Finish: %F  %H:%M:%S'
+TE=$(date +"%s")
+echo  "*** Script runtime: $(($TE - $TS)) seconds ***"
+exit $ERR

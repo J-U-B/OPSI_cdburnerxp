@@ -1,0 +1,204 @@
+;=====================================================================
+; delsub.opsiinc CDBurnerXP
+; Uninstaller type: INNO or MSI
+;
+; J. Boettge <boettge@mpi-halle.mpg.de>  2019-03-08 14:01:45 +0100
+;=====================================================================
+
+
+;=======================================
+[sub_delsub_main]
+;=======================================
+Message "Removing previous version(s) of " + $ProductName$
+ShowBitmap $Img_Prepare$ $ProductName$
+marktime
+
+if FileExists("%ScriptPath%\checkinstance.opsiinc")
+	include_append "%ScriptPath%\checkinstance.opsiinc"
+else
+	isFatalError "File not found: checkinstance.opsiinc"
+endif
+
+
+;=== get list of UninstIDs from registry:
+if FileExists("%ScriptPath%\uninst_section_search.opsiinc")
+	;=== search in registry for available uninstall information
+	include_append "%ScriptPath%\uninst_section_search.opsiinc"
+	Sub_search_registry_uninstall_keys
+else
+	;=== fallback
+	Set $ResultList$ = CreateStringList($Uninst_ID_std$ + "|x32")
+endif
+
+if not ( count ($ResultList$) = "0" )
+	
+	;=== process uninstall for all found uninstall sections:
+	for %id% in $ResultList$ do sub_Uninstall_ID
+	
+	;=== custom post uninstall
+	comment "include custom post uninstall file"
+	if not ($CustomPostUninstall$ = "none")
+		if FileExists("%ScriptPath%\custom\" + $CustomPostUninstall$)
+			ShowBitmap $Img_Uninstall_Custom$ $ProductName$
+			include_insert "%ScriptPath%\custom\" + $CustomPostUninstall$
+			ShowBitmap $Img_Uninstall$ $ProductName$
+		endif
+	endif	
+	
+	;=== measure time
+	set $TimeDiff$ = getDiffTimeSec
+	Message  "Removal time: " + $TimeDiff$ + " seconds"	
+	
+else
+	comment "Empty result list while searching for " + $ProductName$ + " in registry - does not seem to be installed"
+endif	
+
+
+
+
+;=======================================
+[sub_Uninstall_ID]
+;=======================================
+set $Uninst_ID$    	= takeString(0, splitString("%id%", "|"))
+set $Uninst_Arch$  	= takeString(1, splitString("%id%", "|"))
+
+set $RegKey$		="[HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\" + $Uninst_ID$ + "]"
+
+Switch $Uninst_Arch$
+	Case "x32"
+			set $DisplayName$    	= GetRegistryStringValue32($RegKey$ + " DisplayName")
+			set $Inst_Loc$ 			= GetRegistryStringValue32($RegKey$ + " InstallLocation")
+			set $Inst_Ver$ 			= GetRegistryStringValue32($RegKey$ + " DisplayVersion")
+			set $UninstallString$  	= GetRegistryStringValue32($RegKey$ + " UninstallString")
+			; maybe the previous setup was an Inno installer:
+			set $RegInno$ 			= GetRegistryStringValue32($RegKey$ + " Inno Setup: Setup Version")
+	EndCase
+	Case "x64"
+			set $DisplayName$    	= GetRegistryStringValue64($RegKey$ + " DisplayName")
+			set $Inst_Loc$ 			= GetRegistryStringValue64($RegKey$ + " InstallLocation")
+			set $Inst_Ver$ 			= GetRegistryStringValue64($RegKey$ + " DisplayVersion")
+			set $UninstallString$   = GetRegistryStringValue64($RegKey$ + " UninstallString")
+			; maybe the previous setup was an Inno installer:
+			set $RegInno$ 			= GetRegistryStringValue64($RegKey$ + " Inno Setup: Setup Version")
+	EndCase
+	DefaultCase
+			Comment "Invalid architecture for " + $Uninst_ID$ + " given: " + $Uninst_Arch$
+	EndCase
+EndSwitch
+
+
+if ($UninstallString$ = "") 
+	LogError "Missing UninstallString for [%id%] -- skipping"
+else
+	comment "Start uninstall sub section for " + $Inst_Ver$ + " (" + $Uninst_Arch$ + ")"
+	
+	if not ($RegInno$="")
+		comment "Detected previous INNO setup " + $RegInno$
+		set $isINNO$ = "1"
+		set $Uninst_Opts$ = $INNO_Uninst_Opts$
+		
+		;=== uninstall (if uninstaller exists)
+		if not ($UninstallString$ = "") and fileExists($UninstallString$)
+			Sub_Uninstall
+		else
+			logError "Uninstaller does not exist!"
+		endif
+			
+	else
+		comment "Detected previous MSI setup"
+		set $isINNO$ = "0"
+		set $Uninst_Opts$ = $MSI_Uninst_Opts$
+		
+		Sub_Uninstall
+	endif
+endif
+
+
+;======================================================================
+[Sub_Uninstall]
+;======================================================================
+ShowBitmap $Img_Uninstall$ $ProductName$
+Message "Uninstalling previous setup of " + $ProductName$ + " " + $Inst_Ver$
+
+;=== get uninstall directory
+sub_check_PathVar
+
+;=== compare current InstallLocation with InstallDir from this package:
+;if not ($Uninst_RegDir$ = lower($InstallDir$))
+;	logWarning "Current installation is not at the expected location:"
+;	comment "   Current InstallLocation: [" + $Uninst_RegDir$ + "]"
+;	comment "   Expected Location:       [" + $InstallDir$ + "]"
+;endif
+
+;=== compare current Uninstaller with InstallDir from this package:
+if not (lower($Uninstaller$) = lower(stringReplace($UninstallString$,'"','')))
+	logWarning "Expected $UninstallString$ from registry does not match $Uninstaller$ from package:"
+	comment "   [" + $UninstallString$ + "] <> [" + $Uninstaller$ + "]"
+endif
+
+;=== check for running binaries
+;...the application:
+set $MainBin$ = $Uninst_RegDir$ + $CheckBin$
+set $PSDETAIL_mod$ = ""
+sub_checkinstance
+
+;=== run uninstaller
+LinkFolder_RemoveDesktopLink
+Winbatch_Uninstall
+if ($isINNO$="1")
+	sub_check_exitcode_inno
+else
+	sub_check_exitcode_msi
+endif	
+if ($ExitCode$ = "0") and not ($Uninst_RegDir$ = "")
+	;=== does the installation directory still exist?
+		if (FileExists($Inst_Loc$))
+			logWarning "Install directory still exists: [" + $Inst_Loc$ + "]"
+			;=== try final cleanup
+			Files_del_InstallDir
+		endif
+endif	
+
+
+;======================================================================
+[Winbatch_Uninstall]
+;======================================================================
+; "$Uninstaller$" $Uninst_Opts$
+$UninstallString$  $Uninst_Opts$
+
+
+;======================================================================
+[Files_del_InstallDir]
+;======================================================================
+delete -sfc "$Uninst_RegDir$"
+
+
+;=====================================================================
+[LinkFolder_RemoveDesktopLink]
+;=====================================================================
+set_basefolder common_desktopdirectory
+set_subfolder ""
+delete_element $ProductName$
+
+
+;======================================================================
+[sub_check_Exitcode]
+;======================================================================
+set $ExitCode$ = getLastExitCode
+if not ($ExitCode$ = "0")
+	logWarning "Last operation returned exitcode " + $ExitCode$
+endif
+
+
+;======================================================================
+[sub_check_PathVar]
+;======================================================================
+if ($Inst_Loc$ = "")
+	;===get install location from $UninstallString$
+	set $Uninst_RegDir$ = lower(ExtractFilePath($Uninst_RegDir$))
+else 
+	set $Uninst_RegDir$ = stringReplace(lower($Inst_Loc$) + "\", "\\", "\")
+endif
+
+
+

@@ -1,0 +1,35 @@
+;=====================================================================
+; uninstall.opsiscript (generic)
+; J. Boettge <boettge@mpi-halle.mpg.de>  2017-06-30 08:16:36 +0200
+;=====================================================================
+
+;======================================================================
+[Initial]
+;======================================================================
+setLogLevel=5
+; Log Errors in Logfile but don't abort:
+ExitOnError=true
+; Show syntax errors in the script:
+ScriptErrorMessages=off
+; Dont trace step by step through the script:
+TraceMode=off 
+; Let started programs run in front of the winst window
+StayOnTop=false 
+
+;======================================================================
+[Actions]
+;======================================================================
+include_insert "%ScriptPath%\product_variables.opsiinc"
+
+Message "Uninstalling previous version of " + $ProductName$
+
+if FileExists("%ScriptPath%\delsub.opsiinc")
+	comment "Starting uninstall sub section"
+	;Sub "%ScriptPath%\delsub.opsiinc"
+	include_append "%ScriptPath%\delsub.opsiinc"
+	sub_delsub_main
+else
+	logError "Can't find uninstaller script"
+	isFatalError "delsub.opsiinc not found"
+	
+endif

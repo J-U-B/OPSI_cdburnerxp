@@ -1,0 +1,64 @@
+;=====================================================================
+; exitcode_inno.inc
+; Script by Der-Matze 
+; Source: https://forum.opsi.org/wiki/userspace:check_innosetup-exitcode
+; J. Boettge <boettge@mpi-halle.mpg.de>  2017-03-14 08:35:31 +0100
+;=====================================================================
+
+;=====================================================================
+[sub_check_exitcode_inno]
+;=====================================================================
+
+;Den ExitCode des Installers abfragen
+	set $ExitCode$ = getLastExitCode
+ 
+;Loglevel anpassen
+	setLogLevel = 4
+ 
+ 
+;Den ExitCode auswerten
+
+if ($ExitCode$ = "0")
+	setLogLevel = 5
+	comment "ExitCode = "+$ExitCode$+" Setup was successfully run to completion."
+	setLogLevel = 4
+endif
+ 
+if ($ExitCode$ = "1")
+	setLogLevel = 5
+	logError "ExitCode = "+$ExitCode$+" Setup failed to initialize."
+	isFatalError
+endif
+ 
+if ($ExitCode$ = "2")
+	setLogLevel = 5
+	logError "ExitCode = "+$ExitCode$+" The user clicked Cancel in the wizard before the actual installation started, or chose "No" on the opening "This will install..." message box."
+	isFatalError
+endif
+ 
+if ($ExitCode$ = "3")
+	setLogLevel = 5
+	logError "ExitCode = "+$ExitCode$+" A fatal error occurred while preparing to move to the next installation phase (for example, from displaying the pre-installation wizard pages to the actual installation process). This should never happen except under the most unusual of circumstances, such as running out of memory or Windows resources."
+	isFatalError
+endif
+ 
+if ($ExitCode$ = "4")
+	setLogLevel = 5
+	logError "ExitCode = "+$ExitCode$+" A fatal error occurred during the actual installation process."
+	isFatalError
+endif
+ 
+if ($ExitCode$ = "5")
+	setLogLevel = 5
+	logError "ExitCode = "+$ExitCode$+" The user clicked Cancel during the actual installation process, or chose Abort at an Abort-Retry-Ignore box."
+	isFatalError
+endif
+ 
+if ($ExitCode$ = "6")
+	setLogLevel = 5
+	logError "ExitCode = "+$ExitCode$+" The Setup process was forcefully terminated by the debugger (Run | Terminate was used in the IDE)."
+	isFatalError
+endif
+ 
+;Loglevel anpassen
+	setLogLevel = 6
