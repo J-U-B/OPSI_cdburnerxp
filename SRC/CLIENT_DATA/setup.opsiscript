@@ -2,7 +2,7 @@
 ; setup.ins CDBurnerXP
 ; Installer type: INNO/MSI
 ; 
-; J. Boettge <boettge@mpi-halle.mpg.de>  2019-03-08 15:45:46 +0100
+; J. Boettge <boettge@mpi-halle.mpg.de>  2019-03-11 08:25:58 +0100
 ;======================================================================
 
 ;======================================================================
@@ -73,7 +73,7 @@ else
 	set $MainBin$ = $InstallDir$+$CheckBin$
 	
 	if not (FileExists($MainBin$))
-		logError "Main binary not found! [" + $InstallDir$+$MainBin$ + "]"
+		logError "Main binary not found! [" + $MainBin$ + "]"
 		isFatalError
 	endif
 	
@@ -82,9 +82,11 @@ else
 		LinkFolder_CreateDesktopLink
 	endif
 
-	;=== Create entries in start menu
-	LinkFolder_clear_StartMenuLinks
-	;LinkFolder_create_StartMenuLinks
+	;=== Create entries in start menu (only for INNO)
+	if ($InstallerType$ = "INNO")
+		LinkFolder_clear_StartMenuLinks
+		;LinkFolder_create_StartMenuLinks
+	endif
 	
 	;=== custom post install
 	comment "include custom post install file"
@@ -113,12 +115,7 @@ $Installer$ $INNO_Inst_Opts$
 ;======================================================================
 $MSI_Inst_Cmd$
 
-;====================================================================== 
-[ShellInAnIcon_copy_default_config]
-;======================================================================
-copy /Y "%ScriptPath%\custom\$CustomConfig$"  "$InstallDir$$DefaultXML$"
- 
- 
+
 ;=====================================================================
 [LinkFolder_clear_StartMenuLinks]
 ;=====================================================================

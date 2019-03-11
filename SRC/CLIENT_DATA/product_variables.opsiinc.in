@@ -1,7 +1,7 @@
 ;=====================================================================
 ; product specific variables CDBurnerXP
 ;
-; J. Boettge <boettge@mpi-halle.mpg.de>  2019-03-08 16:43:28 +0100
+; J. Boettge <boettge@mpi-halle.mpg.de>  2019-03-11 08:07:51 +0100
 ;=====================================================================
 
 include_insert "%ScriptPath%\variables.opsiinc"
@@ -192,31 +192,38 @@ Case "INNO"
 	;============= INNO =============
 	Set $Installer$			= "%ScriptPath%\files\" + $StrippedProductId$ + "-{{O_SOFTWARE_VER}}-x" + $sw_arch$ + "_minimal.exe"
 	Set $INNO_Setup_Inf$	= "%ScriptPath%\files\setup_cdburnerxp.inf"
-	
-	Set $INNO_Inst_Opts$    = '/SP- /SILENT /NOCANCEL /NORESTART /CLOSEAPPLICATIONS /SUPPRESSMSGBOXES /LANG=english /DIR="' + $InstallDir$ +'" /GROUP="' + $ProductName$ +'" /LOADINF="+ $INNO_Setup_Inf$ +" /LOG="'+ $Inst_Log$ +'"'
-	Set $INNO_Uninst_Opts$  = '/SILENT /NORESTART /LOG="'+ $Uninst_Log$ +'"'
 EndCase	
 Case "MSI"
 	;============= MSI ==============
 	Set $Installer$			= "%ScriptPath%\files\" + $StrippedProductId$ + "-{{O_SOFTWARE_VER}}-x" + $sw_arch$ + ".msi"
-	
 	Set $MSI_Inst_Opts$ 	= '/qb-! /norestart /l+* "' + $Inst_Log$ +'" INSTALLDIR="' + $InstallDir$ + '" REBOOT=ReallySuppress ALLUSERS=1'
-	Set $MSI_Uninst_Opts$  	= '/qb-! /norestart /l+* "' + $Uninst_Log$ + '" REBOOT=ReallySuppress'
-	Set $MSI_Inst_Cmd$		= 'msiexec /i "' + $Installer$ +'" ' + $Inst_Opts$
-	Set $MSI_Uninst_Cmd$ 	= "msiexec /x $ProductKey$ " + $Uninst_Opts$
+	Set $MSI_Inst_Cmd$		= 'msiexec /i "' + $Installer$ +'" ' + $MSI_Inst_Opts$
 EndCase
 Case "NSIS"
 	;=== NSIS === (not used here)
 	;Set $NSIS_Inst_Opts$  	= "/S  /D=" + $InstallDir$
-	;Set $NSIS_Uninst_Opts$	= "/S"
 	isFatalError "FATAL ERROR: Unsupported installer type [" + $InstallerType$ + "]"
 EndCase
 DefaultCase
 	isFatalError "FATAL ERROR: Unknown installer type [" + $InstallerType$ + "]"
 EndCase
 EndSwitch
-	
+
 if not (FileExists($Installer$))
 	LogError "FATAL ERROR: Installer not found [" + $Installer$ + "]"
 	isFatalError
 endif
+
+;---------------------------------
+;*** specific Uninstaller options:
+;---------------------------------
+;*** INNO
+Set $INNO_Inst_Opts$    = '/SP- /SILENT /NOCANCEL /NORESTART /CLOSEAPPLICATIONS /SUPPRESSMSGBOXES /LANG=english /DIR="' + $InstallDir$ +'" /GROUP="' + $ProductName$ +'" /LOADINF="+ $INNO_Setup_Inf$ +" /LOG="'+ $Inst_Log$ +'"'
+Set $INNO_Uninst_Opts$  = '/SILENT /NORESTART /LOG="'+ $Uninst_Log$ +'"'
+
+;*** MSI
+Set $MSI_Uninst_Opts$  	= '/qb-! /norestart /l+* "' + $Uninst_Log$ + '" REBOOT=ReallySuppress'
+Set $MSI_Uninst_Cmd$ 	= "msiexec /x $ProductKey$ " + $Uninst_Opts$
+
+;*** NSIS
+Set $NSIS_Uninst_Opts$	= "/S"

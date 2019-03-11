@@ -58,7 +58,7 @@ ifeq ($(INST_TYPE),INNO)
 FILES_MASK := $(SW_NAME)-$(SW_VER)-x*_minimal.exe
 GREP_MASK := $(SW_NAME)-$(SW_VER)-x(32|64)_minimal.exe
 else ifeq ($(INST_TYPE),MSI)
-FILES_MASK := $(SW_NAME)-$(SW_VER)-x*_.*
+FILES_MASK := $(SW_NAME)-$(SW_VER)-x*.msi
 GREP_MASK := $(SW_NAME)-$(SW_VER)-x(32|64).msi
 else
 FILES_MASK := $(SW_NAME)-$(SW_VER)-x*.*

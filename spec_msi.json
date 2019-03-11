@@ -1,0 +1,36 @@
+{  
+	"_": "=== OPSI package variables ===",
+	"O_PKG_VER"         : "1",
+	"O_SOFTWARE_VER"    : "4.5.8.7041",
+	"O_SOFTWARE"        : "cdburnerxp",
+	"O_SOFTWARE_WEBSITE": "https://cdburnerxp.se/de/home",
+	"O_SOFTWARE_CHANGES": "https://cdburnerxp.se/en/development?full",
+	"O_RELEASE_DATE"    : "{{M_TODAY}}",
+	"O_INST_LOG"        : "/tmp/{{M_ORGPREFIX}}cdburnerxp__opsi_package_install.log",
+	"_":"===== This package supports both installers INNO (exe) and MSI =====",
+	"_":"===== The MSI package is preferred!                                 ",
+	"O_USE_INSTALLER"	: "MSI",
+	"_":"===== for the INNO installer these are the download links: =========",
+	"_":"      note: the following links are having a limited lifetime       ",
+	"_":"      for refresh use: https://cdburnerxp.se/download?more-options# ",
+	"O_DL_EXE_64BIT"	: "https://download.cdburnerxp.se/minimal/75f7bdd9bf1f65ba4a78276f151c008b/5c8280de/cdbxp_setup_4.5.8.7041_x64_minimal.exe",
+	"O_DL_EXE_32BIT"	: "https://download.cdburnerxp.se/minimal/6e196d65ee36215a4523498d88132c58/5c8280de/cdbxp_setup_4.5.8.7041_minimal.exe",
+	
+	"STAGE"             : "{{M_STAGE}}",
+	"TESTPREFIX"	    : "{{M_TESTPREFIX}}",
+	"ORGPREFIX"         : "{{M_ORGPREFIX}}",
+	"ORGNAME"           : "{{M_ORGNAME}}",
+
+	"_":"=== conditions ===",
+	"ifdef_auto_download"           :true,
+	
+	"ifdef_testing"                 :{{M_TESTING}},	
+	"ifdef_allinc"                  :{{M_ALLINC}},	
+	"ifdef_keepfiles"				:{{M_KEEPFILES}},
+	
+	"_":"=== some tuning ===",
+	"DEFAULT_TESTING_LOGLEVEL" : "7",
+	"DEFAULT_RELEASE_LOGLEVEL" : "5",
+	
+	"_":""
+}

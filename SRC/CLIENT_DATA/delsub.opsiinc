@@ -108,7 +108,9 @@ else
 		comment "Detected previous MSI setup"
 		set $isINNO$ = "0"
 		set $Uninst_Opts$ = $MSI_Uninst_Opts$
-		
+		; fix uninstall string:
+		set $UninstallString$   = lower(stringReplace($UninstallString$,' /i',' /x'))
+			
 		Sub_Uninstall
 	endif
 endif
@@ -131,10 +133,11 @@ sub_check_PathVar
 ;endif
 
 ;=== compare current Uninstaller with InstallDir from this package:
-if not (lower($Uninstaller$) = lower(stringReplace($UninstallString$,'"','')))
-	logWarning "Expected $UninstallString$ from registry does not match $Uninstaller$ from package:"
-	comment "   [" + $UninstallString$ + "] <> [" + $Uninstaller$ + "]"
-endif
+;...this is not practcable as we expect MSI or INNO
+;if not (lower($Uninstaller$) = lower(stringReplace($UninstallString$,'"','')))
+;	logWarning "Expected $UninstallString$ from registry does not match $Uninstaller$ from package:"
+;	comment "   [" + $UninstallString$ + "] <> [" + $Uninstaller$ + "]"
+;endif
 
 ;=== check for running binaries
 ;...the application:
@@ -151,7 +154,9 @@ else
 	sub_check_exitcode_msi
 endif	
 if ($ExitCode$ = "0") and not ($Uninst_RegDir$ = "")
-	;=== does the installation directory still exist?
+		;=== wait for cleanup
+		sleepSeconds 2
+		;=== does the installation directory still exist?
 		if (FileExists($Inst_Loc$))
 			logWarning "Install directory still exists: [" + $Inst_Loc$ + "]"
 			;=== try final cleanup

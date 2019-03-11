@@ -4,7 +4,7 @@
 ; This file contains all possible variables, excluding the opsi-system
 ; variables, for the opsi-winst scripts in use.
 ;
-; J. Boettge <boettge@mpi-halle.mpg.de>  2019-03-08 14:28:31 +0100
+; J. Boettge <boettge@mpi-halle.mpg.de>  2019-03-11 08:19:09 +0100
 ;=====================================================================
 
 DefStringList $MAP$
@@ -30,10 +30,8 @@ DefVar $InstallBase$
 DefVar $InstallDir$
 DefVar $Installer$
 DefVar $InstallerType$
-DefVar $Inst_Cmd$
 DefVar $Inst_Loc$
 DefVar $Inst_Log$
-DefVar $Inst_Opts$
 DefVar $Inst_Ver$
 DefVar $isINNO$
 ; DefVar $isMSI$
@@ -43,6 +41,8 @@ DefVar $LogDir$
 DefVar $LogLevelDefault$
 DefVar $MainBin$
 DefVar $MinimumSpace$
+DefVar $NSIS_Inst_Opts$
+DefVar $NSIS_Uninst_Opts$
 DefVar $NTVersion$
 DefVar $ProductId$
 DefVar $ProductName$
@@ -74,8 +74,6 @@ DefVar $Version$
 DefVar $INNO_Setup_Inf$
 DefVar $INNO_Inst_Opts$
 DefVar $INNO_Uninst_Opts$
-DefVar $INNO_Inst_Cmd$
-DefVar $INNO_Uninst_Cmd$
 
 DefVar $MSI_Inst_Opts$
 DefVar $MSI_Uninst_Opts$
