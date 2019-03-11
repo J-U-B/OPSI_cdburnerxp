@@ -52,6 +52,11 @@ die Erstellung der Pakete.
 Im Idealfall ist beim Erscheinen einer neuen Release des *CDBurnerXP* lediglich die
 **<code>spec.json</code>** anzupassen.
 
+Dieses Paket unterstuetzt die Software-Installation und -Deinstallation sowohl
+fuer **MSI**- als auch fuer **INNO**-Setup. Hierfuer stehen entsprechende 
+<code>spec</code>-Files zur Verfuegung.  
+U.a. da die Download-Links fuer die INNO-Setup-Pakete nicht stabil sind, wird
+die Verwendung der MSI-Pakete empfohlen.
 
 <div id="pystache"></div>
 
