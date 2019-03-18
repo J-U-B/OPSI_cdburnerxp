@@ -2,7 +2,7 @@
 ; setup.ins CDBurnerXP
 ; Installer type: INNO/MSI
 ; 
-; J. Boettge <boettge@mpi-halle.mpg.de>  2019-03-11 08:25:58 +0100
+; J. Boettge <boettge@mpi-halle.mpg.de>  2019-03-18 07:43:13 +0100
 ;======================================================================
 
 ;======================================================================
@@ -77,6 +77,12 @@ else
 		isFatalError
 	endif
 	
+	; the MSI installer creates a desktop link - delete it just in case
+	if ($InstallerType$ = "MSI")
+		sleepseconds 1
+		LinkFolder_RemoveDesktopLink
+	endif
+	
 	;=== create desktop link if requested
 	if ($pr_DesktopLink$ = "true")
 		LinkFolder_CreateDesktopLink
@@ -126,6 +132,15 @@ delete_subfolder "$ProductName$"
 ;delete_element "$StrippedProductId$"
 ;set_subfolder "$ProductName$"
 ;delete_element "Uninstall $ProductName$"
+ 
+ 
+;=====================================================================
+[LinkFolder_RemoveDesktopLink]
+;=====================================================================
+set_basefolder common_desktopdirectory
+set_subfolder ""
+delete_element $ProductName$
+ 
  
 ;=====================================================================
 [LinkFolder_CreateDesktopLink]

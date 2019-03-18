@@ -1,5 +1,9 @@
+cdburnerxp 4.5.8.7041-2:
+	* remove desktop link for MSI version (just in case)
+	* increased package version to prepare for replacement of previous dfn package
+	-- J. Boettge <boettge@mpi-halle.mpg.de>  2019-03-18 07:45:37 +0100
+
+
 cdburnerxp 4.5.8.7041-1:
 	* complete redesign (based on MPIMSP template by J. Boettge)
 	-- J. Boettge <boettge@mpi-halle.mpg.de>  2019-02-27 08:56:20 +0100
-
-

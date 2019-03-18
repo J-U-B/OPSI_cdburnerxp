@@ -1,6 +1,6 @@
 {  
 	"_": "=== OPSI package variables ===",
-	"O_PKG_VER"         : "1",
+	"O_PKG_VER"         : "2",
 	"O_SOFTWARE_VER"    : "4.5.8.7041",
 	"O_SOFTWARE"        : "cdburnerxp",
 	"O_SOFTWARE_WEBSITE": "https://cdburnerxp.se/de/home",
