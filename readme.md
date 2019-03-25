@@ -134,7 +134,7 @@ entfaellt dieser Abschnitt.
 Je nach Art des erstellten Paketes erfolgt bei der Installation im Depot durch 
 das <code>postinst</code>-Script der Download der Software vom Hersteller (Windows, 32 und 64 Bit).  
 Ein manueller Download sollte dann nicht erforderlich sein. 
-Auf dem Depot-Server ist **wget** erforderlich.
+Auf dem Depot-Server ist **curl** bzw. **wget** erforderlich.
 
 Das Gesamtvolumen der herunterzuladenden Dateien betraegt ca. **20 MByte**.
 
@@ -226,6 +226,13 @@ Hilfsprogramme. Diese unterliegen ihren jeweiligen Lizenzen.
 <div id="lic_cdburerxp"></div>
 
 ### CDBurnerXP ###
+
+Canneverbe Limited gewaehrt die Erlaubnis, die Software kostenlos  sowohl fuer 
+kommerzielle als auch fuer nicht-kommerzielle Zwecke zu nutzen.
+
+Die vollstaendige [Lizenz (EULA)](https://cdburnerxp.se/help/intro/license)
+findet sich unter: https://cdburnerxp.se/help/intro/license
+
 Urheber des verwendeten Logos ist *Canneverbe Limited*.  
 Lizenz: [CC BY-SA 3.0](https://creativecommons.org/licenses/by-sa/3.0)
 Die Variationen fuer das OPSI-Paket wurden von mir unter Verwendung weiterer
@@ -280,8 +287,8 @@ Alle Risiken des Softwareeinsatzes liegen beim Nutzer.
 
 <div id="anmerkungen_todo"></div>
 
-## Anmerkungen/ToDo ##
-* Fuer die OPSI-Pakete wird noch ein ***Lizenzmodell*** benoetigt.
+<!--## Anmerkungen/ToDo ## -->
+
 
 -----
-Jens Boettge <<boettge@mpi-halle.mpg.de>>, 2019-03-08 11:40:15 +0100
+Jens Boettge <<boettge@mpi-halle.mpg.de>>, 2019-03-25 10:44:52 +0100
