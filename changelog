@@ -1,7 +1,8 @@
 cdburnerxp 4.5.8.7042-2:
 	* product update ==> 4.5.8.7042
 	* documentation adjusted (license)
-	-- J. Boettge <boettge@mpi-halle.mpg.de>  2019-03-25 10:47:22 +0100
+	* set log directory for O4I to %opsiLogDir%
+	-- J. Boettge <boettge@mpi-halle.mpg.de>  2019-03-25 11:44:41 +0100
 
 cdburnerxp 4.5.8.7041-2:
 	* remove desktop link for MSI version (just in case)

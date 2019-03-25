@@ -1,7 +1,7 @@
 ;=====================================================================
 ; product specific variables CDBurnerXP
 ;
-; J. Boettge <boettge@mpi-halle.mpg.de>  2019-03-11 08:07:51 +0100
+; J. Boettge <boettge@mpi-halle.mpg.de>  2019-03-25 11:43:58 +0100
 ;=====================================================================
 
 include_insert "%ScriptPath%\variables.opsiinc"
@@ -177,7 +177,12 @@ Set $MinimumSpace$    	= "50 MB"
 ;Set $CheckBin$       	= $StrippedProductId$ + ".exe"
 Set $CheckBin$       	= "cdbxpp.exe"
 
-Set $LogDir$			= "%SystemDrive%\tmp"
+if $isO4I$ = "true"
+	Set $LogDir$		= "%opsiLogDir%"
+else
+	Set $LogDir$		= "%SystemDrive%\tmp"
+endif
+
 Set $Inst_Log$			= $LogDir$ + "\"+$ProductId$+"_install.log"
 Set $Uninst_Log$		= $LogDir$ + "\"+$ProductId$+"_uninstall.log"
 
