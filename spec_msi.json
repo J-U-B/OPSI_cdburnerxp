@@ -1,7 +1,7 @@
 {  
 	"_": "=== OPSI package variables ===",
-	"O_PKG_VER"         : "2",
-	"O_SOFTWARE_VER"    : "4.5.8.7042",
+	"O_PKG_VER"         : "3",
+	"O_SOFTWARE_VER"    : "4.5.8.7128",
 	"O_SOFTWARE"        : "cdburnerxp",
 	"O_SOFTWARE_WEBSITE": "https://cdburnerxp.se/de/home",
 	"O_SOFTWARE_CHANGES": "https://cdburnerxp.se/en/development?full",
@@ -13,8 +13,8 @@
 	"_":"===== for the INNO installer these are the download links: =========",
 	"_":"      note: the following links are having a limited lifetime       ",
 	"_":"      for refresh use: https://cdburnerxp.se/download?more-options# ",
-	"O_DL_EXE_64BIT"	: "https://download.cdburnerxp.se/minimal/75f7bdd9bf1f65ba4a78276f151c008b/5c8280de/cdbxp_setup_4.5.8.7042_x64_minimal.exe",
-	"O_DL_EXE_32BIT"	: "https://download.cdburnerxp.se/minimal/6e196d65ee36215a4523498d88132c58/5c8280de/cdbxp_setup_4.5.8.7042_minimal.exe",
+	"O_DL_EXE_64BIT"	: "https://download.cdburnerxp.se/cdbxp_setup_4.5.8.7128_x64_minimal.exe",
+	"O_DL_EXE_32BIT"	: "https://download.cdburnerxp.se/cdbxp_setup_4.5.8.7128_minimal.exe",
 	
 	"STAGE"             : "{{M_STAGE}}",
 	"TESTPREFIX"	    : "{{M_TESTPREFIX}}",

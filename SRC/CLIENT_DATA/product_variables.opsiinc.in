@@ -1,7 +1,7 @@
 ;=====================================================================
 ; product specific variables CDBurnerXP
 ;
-; J. Boettge <boettge@mpi-halle.mpg.de>  2019-03-25 11:43:58 +0100
+; J. Boettge <boettge@mpi-halle.mpg.de>  2019-11-21 07:54:22 +0100
 ;=====================================================================
 
 include_insert "%ScriptPath%\variables.opsiinc"
@@ -16,8 +16,11 @@ Set $NTVersion$   		= GetMsVersionInfo
 ;-----------------------------------------------------------
 ;*** basic requirements
 ;-----------------------------------------------------------
-requiredWinstVersion >= "4.11.6"
+requiredWinstVersion >= "4.12.0"
 
+;-----------------------------------------------------------
+;*** check OS
+;-----------------------------------------------------------
 if CompareDotSeparatedNumbers($NTVersion$, "<", "6.1")
 	LogError "OS is not Windows 7 or above"
 	isFatalError
@@ -29,6 +32,11 @@ if not ($SystemType$ = "64 Bit System")
 
 	LogWarning "OS is not a 64 Bit System; 32 Bit is not explicitly supported"
 endif
+
+;-----------------------------------------------------------
+;*** helper functions
+;-----------------------------------------------------------
+importlib "helpers.opsifunc"
 
 ;-----------------------------------------------------------
 ;*** get LogLevel from property
@@ -68,16 +76,17 @@ endif
 ;*** Images
 ;-----------------------------------------------------------
 if ($isO4I$ = "true")
-	set $Img_Install$		= "%ScriptPath%\images\" + $StrippedProductId$ + "_install_o4i.png"
+	set $Img_Install$       = "%ScriptPath%\images\" + $StrippedProductId$ + "_install_o4i.png"
 else
-	set $Img_Install$		= "%ScriptPath%\images\" + $StrippedProductId$ + "_install.png"
+	set $Img_Install$       = "%ScriptPath%\images\" + $StrippedProductId$ + "_install.png"
 endif
-set $Img_Install_Custom$	= "%ScriptPath%\images\" + $StrippedProductId$ + "_install_custom.png"
-Set $Img_Uninstall$			= "%ScriptPath%\images\" + $StrippedProductId$ + "_uninstall.png"
-Set $Img_Uninstall_Custom$	= "%ScriptPath%\images\" + $StrippedProductId$ + "_uninstall_custom.png"
-Set $Img_Prepare$			= "%ScriptPath%\images\" + $StrippedProductId$ + "_prepare.png"
-Set $Img_Plugins$			= "%ScriptPath%\images\" + $StrippedProductId$ + "_plugins.png"
-Set $Img_Update$			= "%ScriptPath%\images\" + $StrippedProductId$ + "_update.png"
+set $Img_Install_Custom$    = "%ScriptPath%\images\" + $StrippedProductId$ + "_install_custom.png"
+Set $Img_Uninstall$         = "%ScriptPath%\images\" + $StrippedProductId$ + "_uninstall.png"
+Set $Img_Uninstall_Custom$  = "%ScriptPath%\images\" + $StrippedProductId$ + "_uninstall_custom.png"
+Set $Img_Prepare$           = "%ScriptPath%\images\" + $StrippedProductId$ + "_prepare.png"
+Set $Img_Plugins$           = "%ScriptPath%\images\" + $StrippedProductId$ + "_plugins.png"
+Set $Img_Update$            = "%ScriptPath%\images\" + $StrippedProductId$ + "_update.png"
+Set $Img_Defer$             = "%ScriptPath%\images\" + $StrippedProductId$ + "_defer.png"
 
 comment "preparing..."
 ShowBitmap $Img_Prepare$ $ProductName$
@@ -192,6 +201,15 @@ Set $Uninst_Prg$       	= "unins000.exe"
 Set $Uninstaller$	   	= $InstallDir$ + $Uninst_Prg$
 ; ...oder UninstallString aus Registry
 
+;-------------------------------------------------------
+; filter for opsiServiceCall productOnClient_getObjects:
+;-------------------------------------------------------
+Set $ProductFilter$			= "*" + $StrippedProductId$
+Set $ProductVersionFilter$ 	= "*"
+
+;-------------------------------------------------------
+; select installer:
+;-------------------------------------------------------
 Switch $InstallerType$
 Case "INNO"
 	;============= INNO =============

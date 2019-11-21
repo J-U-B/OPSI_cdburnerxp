@@ -4,7 +4,7 @@
 ; This file contains all possible variables, excluding the opsi-system
 ; variables, for the opsi-winst scripts in use.
 ;
-; J. Boettge <boettge@mpi-halle.mpg.de>  2019-03-11 08:19:09 +0100
+; J. Boettge <boettge@mpi-halle.mpg.de>  2019-11-21 07:55:05 +0100
 ;=====================================================================
 
 DefStringList $MAP$
@@ -19,6 +19,7 @@ DefVar $DisplayName$
 DefVar $ErrorMsg$
 DefVar $ExitCode$
 DefVar $FullProductId$
+DefVar $Img_Defer$
 DefVar $Img_Install$
 DefVar $Img_Install_Custom$
 DefVar $Img_Uninstall$
@@ -44,8 +45,10 @@ DefVar $MinimumSpace$
 DefVar $NSIS_Inst_Opts$
 DefVar $NSIS_Uninst_Opts$
 DefVar $NTVersion$
+DefVar $ProductFilter$
 DefVar $ProductId$
 DefVar $ProductName$
+DefVar $ProductVersionFilter$
 DefVar $RegInno$
 DefVar $RegKey$
 DefVar $RegKeyPath$
@@ -53,6 +56,7 @@ DefVar $RegPathUninstall32$
 DefVar $RegPathUninstall64$
 DefVar $RegProductID$
 DefVar $RegSearchOpts$
+DefVar $result$
 DefVar $SearchPattern$
 DefVar $SEVENZIP$
 DefVar $StrippedProductId$

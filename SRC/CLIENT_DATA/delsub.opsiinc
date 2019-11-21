@@ -2,7 +2,7 @@
 ; delsub.opsiinc CDBurnerXP
 ; Uninstaller type: INNO or MSI
 ;
-; J. Boettge <boettge@mpi-halle.mpg.de>  2019-03-08 14:01:45 +0100
+; J. Boettge <boettge@mpi-halle.mpg.de>  2019-11-21 07:56:36 +0100
 ;=====================================================================
 
 
@@ -44,6 +44,10 @@ if not ( count ($ResultList$) = "0" )
 			ShowBitmap $Img_Uninstall$ $ProductName$
 		endif
 	endif	
+	
+	;=== update productOnClient information on depot server
+	Message "Updating status information on depot"
+	set $result$ = removeProductVerOnClientStatus($ProductFilter$, $ProductVersionFilter$)	
 	
 	;=== measure time
 	set $TimeDiff$ = getDiffTimeSec

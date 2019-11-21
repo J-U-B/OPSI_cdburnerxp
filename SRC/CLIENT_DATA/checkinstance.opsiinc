@@ -1,6 +1,6 @@
 ;===============================================================================
 ; checkinstance.opsiinc
-; J. Boettge <boettge@mpi-halle.mpg.de> 2018-09-17 15:13:40 +0200
+; J. Boettge <boettge@mpi-halle.mpg.de> 2019-11-21 07:25:35 +0100
 ;===============================================================================
 
 set $PSDETAIL_opr$ = "-e"
@@ -39,8 +39,16 @@ if FileExists($PSDETAIL$)
 				logWarning "Number of killed instances (" + $Proc_Killed$ + ") does not match expectations (" + $Proc_Cnt$ + ")."
 			endif
 		else
-			logError $Proc_Cnt$+" running instance(s) of " + $MainBin$ + " found, but I'm not allowed to kill them."
-			isFatalError "running instance"
+			; logError $Proc_Cnt$+" running instance(s) of " + $CheckProcess$ + " found, but I'm not allowed to kill them."
+			; isFatalError "running instance"
+			logWarning $Proc_Cnt$+" running instance(s) of " + $MainBin$ + " found, but I'm not allowed to kill them."
+			comment "DEFERRING ACTION"
+			if (FileExists($Img_Defer$))
+				ShowBitmap $Img_Defer$	 $ProductName$
+			endif
+			Message "Deferring action for running application"
+			set $result$ = currentProductSetReport("deferred")
+			isSuspended			
 		endif
 	else
 		if $Proc_Cnt$ = "0"
